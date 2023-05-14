@@ -1,0 +1,19 @@
+{
+  "name": "poise_server_v1",
+  "version": "1.0.0",
+  "description": "this is an ecommerce api to power the server side",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Habeebopeyemi/poise_server_V1.git"
+  },
+  "author": "deveeb",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Habeebopeyemi/poise_server_V1/issues"
+  },
+  "homepage": "https://github.com/Habeebopeyemi/poise_server_V1#readme"
+}
