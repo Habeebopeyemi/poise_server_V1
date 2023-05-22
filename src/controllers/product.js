@@ -1,31 +1,9 @@
+const { validationResult } = require("express-validator");
+const Product = require("../model/product");
+
 exports.getProducts = (req, res, next) => {
   res.status(200).json({
-    products: [
-      {
-        id: 1,
-        title: "Leader Bag",
-        description: "A bag that protects you from danger",
-        price: 29.99,
-        image:
-          "https://images.unsplash.com/photo-1502255140135-ee0e0a0ee0e0?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format",
-      },
-      {
-        id: 2,
-        title: "Skin Bag",
-        description: "A bag that protects you from danger",
-        price: 22.99,
-        image:
-          "https://images.unsplash.com/photo-1502255140135-ee0e0a0ee0e0?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format",
-      },
-      {
-        id: 3,
-        title: "Wallet",
-        description: "A bag that protects you from danger",
-        price: 19.99,
-        image:
-          "https://images.unsplash.com/photo-1502255140135-ee0e0a0ee0e0?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format",
-      },
-    ],
+    products: [],
   });
 };
 
@@ -45,23 +23,35 @@ exports.getCredentials = (req, res, next) => {
 
 exports.postProduct = (req, res, next) => {
   // destructure the body object
-  const { title, description, price, image } = req.body;
-  // insert product into database
+  // const { title, description, price, details, image } = req.body;
+  const result = validationResult(req);
   // check if the above details is present in the body
-  if (title && description && price && image) {
-    res.status(201).json({
-      message: "Product added successfully",
-      post: {
-        id: new Date().toISOString(),
-        title,
-        description,
-        price,
-        image,
-      },
+  if (result.isEmpty()) {
+    const { title, description, price, details, image } = req.body;
+    // creating a new instance of the Product and passing the request body
+    const product = new Product({
+      title,
+      description,
+      price,
+      details,
+      image,
+      creator: { name: "Poise Admin" },
     });
+
+    // saving the product
+    product
+      .save()
+      .then(response => {
+        console.log(response);
+        res.status(201).json({
+          message: "Product added successfully",
+          post: response,
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
   } else {
-    res
-      .status(400)
-      .json({ message: "bad payload, kindly check submitted data" });
+    res.status(422).json({ message: result.array() });
   }
 };
