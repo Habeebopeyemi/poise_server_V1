@@ -5,6 +5,14 @@ const productController = require("../controllers/product");
 const router = express.Router();
 // GET "/products"
 router.get("/", productController.getProducts);
+router.get("/product/:productId", productController.getProduct);
+router.post("/image", productController.postImage);
+router.delete("/product/:productId", productController.deleteProduct)
+router.post(
+  "/credentials",
+  [body("email").trim().isEmail(), body("password").trim().notEmpty()],
+  productController.postCredentials
+);
 /*validation*/
 router.post(
   "/postproduct",
@@ -17,12 +25,6 @@ router.post(
   ],
   productController.postProduct
 );
-router.post(
-  "/credentials",
-  [body("email").trim().isEmail(), body("password").trim().notEmpty()],
-  productController.postCredentials
-);
-router.get("/product/:productId", productController.getProduct);
 router.put(
   "/product/:productId",
   [
@@ -34,5 +36,4 @@ router.put(
   ],
   productController.updateProduct
 );
-router.post("/image", productController.postImage);
 module.exports = router;

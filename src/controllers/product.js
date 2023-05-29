@@ -123,7 +123,7 @@ exports.postImage = (req, res, next) => {
   // how transform the image uploaded to cloudinary
   result
     .then(data => {
-      // console.log(data);
+      console.log(data);
       // console.log(data.secure_url);
 
       res.status(200).json({
@@ -140,6 +140,13 @@ exports.postImage = (req, res, next) => {
         next(err);
       }
     });
+
+  const url = cloudinary.url(req.file.originalname, {
+    width: 500,
+    height: 500,
+    crop: "scale",
+  });
+  // console.log(url);
 };
 exports.updateProduct = (req, res, next) => {
   const productId = req.params.productId;
@@ -179,6 +186,29 @@ exports.updateProduct = (req, res, next) => {
       res
         .status(200)
         .json({ message: "Product updated successfully", product: result });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+        next(err);
+      }
+    });
+};
+exports.deleteProduct = (req, res, next) => {
+  const productId = req.params.productId;
+
+  Product.findById(productId)
+    .then(product => {
+      if (!product) {
+        const error = new Error(`Product with id:${productId} not found`);
+        error.statusCode = 404;
+        throw error;
+      }
+      return Product.findByIdAndRemove(productId);
+    })
+    .then(result => {
+      console.log(result);
+      res.status(200).json({ message: "Deleted product." });
     })
     .catch(err => {
       if (!err.statusCode) {
