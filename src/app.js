@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const { v4: uuidv4 } = require("uuid");
+// const { v4: uuidv4 } = require("uuid");
 // multer for accepting formdata
 const multer = require("multer");
 
@@ -11,10 +11,10 @@ const app = express();
 /*setup file storage to control where image is stored*/
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "images");
+    cb(null, "src/images");
   },
   filename: (req, file, cb) => {
-    cb(null, uuidv4());
+    cb(null, file.originalname);
   },
 });
 
@@ -25,11 +25,15 @@ const fileFilter = (req, file, cb) => {
     file.mimetype === "image/jpeg"
   ) {
     cb(null, true);
+  } else {
+    cb(null, false);
   }
 };
 // app.use(bodyParser.urlencoded())//x-www-form-urlencoded <form></form>
 app.use(bodyParser.json()); //application/json
-app.use(multer().single("file"));
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("file")
+);
 
 // handling CORS
 app.use((req, res, next) => {
@@ -46,7 +50,7 @@ app.use("/products", productRoutes);
 /*setting up general error handling middleware*/
 app.use((error, req, res, next) => {
   console.log(error);
-  const status = error.statusCode;
+  const status = error.statusCode || 500;
   /*error property exist by default*/
   const message = error.message;
   res.status(status).json({ message: message });

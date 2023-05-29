@@ -82,6 +82,7 @@ exports.getProduct = (req, res, next) => {
     .then(product => {
       if (!product) {
         const error = new Error("Product not found");
+        // set not found error
         error.statusCode = 404;
         /*the error thrown will find it's way into the catch block*/
         throw error;
@@ -99,26 +100,90 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.postImage = (req, res, next) => {
-  console.log(req.file, req.files, req.body);
+  // console.log(req.file);
+  if (!req.file) {
+    const error = new Error("No image provided");
+    error.statusCode = 422;
+    throw error;
+  }
+
   // configuration
+
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
 
-  Upload;
-  const result = cloudinary.uploader.upload(req.file.path);
+  // Upload;
 
+  const result = cloudinary.uploader.upload(req.file.path, {
+    public_id: req.file.originalname,
+  });
+  // how transform the image uploaded to cloudinary
   result
     .then(data => {
-      console.log(data);
-      console.log(data.secure_url);
+      // console.log(data);
+      // console.log(data.secure_url);
 
-      res.status(200).json({ url: result.secure_url });
+      res.status(200).json({
+        message: "image upload to cloudinary successful",
+        url: data.secure_url,
+      });
     })
     .catch(err => {
-      console.log(err);
-      res.status(500).json({ error: "Failed to upload image" });
+      if (!err.statusCode) {
+        err.statusCode = 500;
+        res
+          .status(err.statusCode)
+          .json({ error: "Failed to upload image to cloudinary" });
+        next(err);
+      }
+    });
+};
+exports.updateProduct = (req, res, next) => {
+  const productId = req.params.productId;
+  console.log(req.params);
+  console.log(req.body.title);
+  console.log(productId);
+  const valError = validationResult(req);
+  if (!valError.isEmpty()) {
+    const error = new Error("Error validating input, kindly check your input");
+    error.statusCode = 422;
+    throw error;
+  }
+
+  const { title, description, price, details, image } = req.body;
+  if (!image) {
+    const error = new Error("No image uploaded");
+    error.statusCode = 422;
+    throw error;
+  }
+
+  Product.findById(productId)
+    .then(product => {
+      if (!product) {
+        const error = new Error(`Product with id:${productId} not found`);
+        error.statusCode = 404;
+        throw error;
+      }
+      product.title = title;
+      product.description = description;
+      product.price = price;
+      product.details = details;
+      product.image = image;
+
+      return product.save();
+    })
+    .then(result => {
+      res
+        .status(200)
+        .json({ message: "Product updated successfully", product: result });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+        next(err);
+      }
     });
 };
