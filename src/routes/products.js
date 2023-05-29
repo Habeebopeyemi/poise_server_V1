@@ -7,7 +7,7 @@ const router = express.Router();
 router.get("/", productController.getProducts);
 /*validation*/
 router.post(
-  "/post",
+  "/postproduct",
   [
     body("title").trim().isLength({ min: 5 }).escape(),
     body("description").trim().isLength({ min: 5 }).escape(),
@@ -20,7 +20,9 @@ router.post(
 router.post(
   "/credentials",
   [body("email").trim().isEmail(), body("password").trim().notEmpty()],
-  productController.getCredentials
+  productController.postCredentials
 );
+router.get("/product/:productId",productController.getProduct);
+router.post("/image", productController.postImage);
 
 module.exports = router;

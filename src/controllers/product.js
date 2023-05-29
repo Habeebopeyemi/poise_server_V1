@@ -1,13 +1,24 @@
 const { validationResult } = require("express-validator");
+const cloudinary = require("cloudinary").v2;
 const Product = require("../model/product");
 
 exports.getProducts = (req, res, next) => {
-  res.status(200).json({
-    products: [],
-  });
+  Product.find()
+    .then(products => {
+      res.status(200).json({
+        message: "Fetched products successfully.",
+        products: products,
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+        next(err);
+      }
+    });
 };
 
-exports.getCredentials = (req, res, next) => {
+exports.postCredentials = (req, res, next) => {
   const { email, password } = req.body;
   // verify details with credential stored in database
   if (email === "poise@gmail.com" && password === "rexxiepoise") {
@@ -49,9 +60,65 @@ exports.postProduct = (req, res, next) => {
         });
       })
       .catch(err => {
-        console.log(err);
+        if (!err.statusCode) {
+          err.statusCode = 500;
+        }
+        /*send err to the next middleware handling error message*/
+        next(err);
       });
   } else {
-    res.status(422).json({ message: result.array() });
+    // res.status(422).json({ message: result.array() });
+    /*general error handling technique*/
+    const error = new Error("Validation failed, entered data is incorrect");
+    /*adding custom property statusCode to the new error instance*/
+    error.statusCode = 422;
+    throw error;
   }
+};
+
+exports.getProduct = (req, res, next) => {
+  const productId = req.params.productId;
+  Product.findById(productId)
+    .then(product => {
+      if (!product) {
+        const error = new Error("Product not found");
+        error.statusCode = 404;
+        /*the error thrown will find it's way into the catch block*/
+        throw error;
+      }
+      res
+        .status(200)
+        .json({ message: "Product fetched successfully", product: product });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.postImage = (req, res, next) => {
+  console.log(req.file, req.files, req.body);
+  // configuration
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
+  Upload;
+  const result = cloudinary.uploader.upload(req.file.path);
+
+  result
+    .then(data => {
+      console.log(data);
+      console.log(data.secure_url);
+
+      res.status(200).json({ url: result.secure_url });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ error: "Failed to upload image" });
+    });
 };
