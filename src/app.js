@@ -6,8 +6,10 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 
 const productRoutes = require("../src/routes/products");
+const authRoutes = require("../src/routes/auth");
 
 const app = express();
+
 /*setup file storage to control where image is stored*/
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -18,6 +20,7 @@ const fileStorage = multer.diskStorage({
   },
 });
 
+// handling filetype validation
 const fileFilter = (req, file, cb) => {
   if (
     file.mimetype === "image/png" ||
@@ -29,6 +32,7 @@ const fileFilter = (req, file, cb) => {
     cb(null, false);
   }
 };
+
 // app.use(bodyParser.urlencoded())//x-www-form-urlencoded <form></form>
 app.use(bodyParser.json()); //application/json
 app.use(
@@ -46,14 +50,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// setting up differnt routes
 app.use("/products", productRoutes);
+app.use("/auth", authRoutes);
+
 /*setting up general error handling middleware*/
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;
   /*error property exist by default*/
   const message = error.message;
-  res.status(status).json({ message: message });
+  // reference to authController
+  const data = error.data;
+  res.status(status).json({ message: message, data: data });
 });
 
 /*establishing connection to the database*/

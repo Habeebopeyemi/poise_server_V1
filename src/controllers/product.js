@@ -3,19 +3,50 @@ const cloudinary = require("cloudinary").v2;
 const Product = require("../model/product");
 
 exports.getProducts = (req, res, next) => {
+  /*data with pagination start*/
+  const currentPage = req.query.page || 1;
+  const perPage = 10;
+  let totalItems;
   Product.find()
+    .countDocuments()
+    .then(count => {
+      totalItems = count;
+      return Product.find()
+        .skip((currentPage - 1) * perPage)
+        .limit(perPage);
+    })
     .then(products => {
       res.status(200).json({
         message: "Fetched products successfully.",
         products: products,
+        totalItems: totalItems,
       });
     })
     .catch(err => {
       if (!err.statusCode) {
         err.statusCode = 500;
-        next(err);
       }
+      next(err);
     });
+  /*pagination ends*/
+
+  /*
+  // products without pagination
+
+Product.find()
+  .then(products => {
+    res.status(200).json({
+      message: "Fetched products successfully.",
+      products: products,
+    });
+  })
+  .catch(err => {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+      next(err);
+    }
+  });
+*/
 };
 
 exports.postCredentials = (req, res, next) => {
