@@ -2,6 +2,7 @@ const express = require("express");
 const { body } = require("express-validator");
 const Admin = require("../model/admin");
 const authController = require("../controllers/auth");
+const isAuth = require("../middleware/is-auth");
 
 const router = express.Router();
 
@@ -22,9 +23,10 @@ router.put(
     body("password").trim().isLength({ min: 5 }),
     body("adminname").trim().not().isEmpty(),
   ],
+  isAuth,
   authController.signup
 );
 
-router.post("/login")
+router.post("/login", authController.login);
 
 module.exports = router;

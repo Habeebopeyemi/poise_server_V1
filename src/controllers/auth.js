@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const Admin = require("../model/admin");
 
 exports.signup = (req, res, next) => {
@@ -58,6 +59,21 @@ exports.login = (req, res, next) => {
         error.statusCode = 401;
         throw error;
       }
+      // genrating a token signature with jwt
+      const token = jwt.sign(
+        {
+          email: loadedAdmin.email,
+          adminId: loadedAdmin._id.toString(),
+        },
+        "thisispoiseadminsecretkeepitsafe",
+        { expiresIn: "1hr" }
+      );
+
+      res.status(200).json({
+        meesage: "welcome back poise admin",
+        token: token,
+        adminId: loadedAdmin._id.toString(),
+      });
     })
     .catch(error => {
       if (!error.statusCode) {

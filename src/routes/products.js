@@ -1,13 +1,14 @@
 const express = require("express");
 const { body } = require("express-validator");
 const productController = require("../controllers/product");
+const isAuth = require("../middleware/is-auth");
 
 const router = express.Router();
 // GET "/products"
 router.get("/", productController.getProducts);
 router.get("/product/:productId", productController.getProduct);
 router.post("/image", productController.postImage);
-router.delete("/product/:productId", productController.deleteProduct)
+router.delete("/product/:productId", isAuth, productController.deleteProduct);
 router.post(
   "/credentials",
   [body("email").trim().isEmail(), body("password").trim().notEmpty()],
@@ -23,6 +24,7 @@ router.post(
     body("details").trim().isLength({ min: 5 }).escape(),
     body("image").trim().isURL(),
   ],
+  isAuth,
   productController.postProduct
 );
 router.put(
@@ -34,6 +36,7 @@ router.put(
     body("details").trim().isLength({ min: 5 }).escape(),
     body("image").trim().isURL(),
   ],
+  isAuth,
   productController.updateProduct
 );
 module.exports = router;
